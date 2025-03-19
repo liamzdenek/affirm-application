@@ -1,0 +1,73 @@
+{
+  "name": "@affirm-merchant-analytics/cdk",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/cdk/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/cdk",
+        "main": "packages/cdk/src/index.ts",
+        "tsConfig": "packages/cdk/tsconfig.json",
+        "assets": []
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cdk deploy --profile lz-demos --all --require-approval never",
+        "cwd": "packages/cdk"
+      },
+      "dependsOn": [
+        "build",
+        {
+          "projects": ["frontend"],
+          "target": "build"
+        },
+        {
+          "projects": ["api"],
+          "target": "build"
+        }
+      ]
+    },
+    "synth": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cdk synth --profile lz-demos",
+        "cwd": "packages/cdk"
+      },
+      "dependsOn": [
+        "build",
+        {
+          "projects": ["frontend"],
+          "target": "build"
+        },
+        {
+          "projects": ["api"],
+          "target": "build"
+        }
+      ]
+    },
+    "diff": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cdk diff --profile lz-demos",
+        "cwd": "packages/cdk"
+      },
+      "dependsOn": [
+        "build",
+        {
+          "projects": ["frontend"],
+          "target": "build"
+        },
+        {
+          "projects": ["api"],
+          "target": "build"
+        }
+      ]
+    }
+  },
+  "tags": []
+}

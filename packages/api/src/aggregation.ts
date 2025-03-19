@@ -35,6 +35,10 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<{ statusCode:
       // Only process INSERT and MODIFY events
       if (record.eventName === 'INSERT' || record.eventName === 'MODIFY') {
         // Get the new image of the record
+        if (!record.dynamodb || !record.dynamodb.NewImage) {
+          console.warn('Record is missing dynamodb or NewImage property:', record);
+          continue;
+        }
         const newImage = unmarshall(record.dynamodb.NewImage as Record<string, any>);
         
         // Process the order

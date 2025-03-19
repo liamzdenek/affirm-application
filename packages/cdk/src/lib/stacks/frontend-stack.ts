@@ -53,7 +53,7 @@ export class FrontendStack extends Stack {
     // Deploy the frontend to S3
     // Note: In a real project, you would build the frontend first
     new BucketDeployment(this, 'DeployFrontend', {
-      sources: [Source.asset(path.join(__dirname, '../../../../frontend/dist'))],
+      sources: [Source.asset(path.join(__dirname, '../../../../../../packages/frontend/dist'))],
       destinationBucket: this.frontendBucket,
       distribution: this.distribution,
       distributionPaths: ['/*'],

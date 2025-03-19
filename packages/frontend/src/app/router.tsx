@@ -1,6 +1,6 @@
 import { createRootRoute, createRoute, createRouter, Outlet } from '@tanstack/react-router';
-import { OrderForm } from './pages/OrderForm';
-import { Dashboard } from './pages/Dashboard';
+import { OrderForm } from './pages/OrderForm.js';
+import { Dashboard } from './pages/Dashboard.js';
 import styles from './router.module.css';
 
 // Create a root route

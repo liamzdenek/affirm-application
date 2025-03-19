@@ -1,7 +1,6 @@
 import { Stack, StackProps, Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Runtime, Code, Function } from 'aws-cdk-lib/aws-lambda';
 import { StartingPosition } from 'aws-cdk-lib/aws-lambda';
 import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
@@ -16,19 +15,32 @@ export interface LambdaStackProps extends StackProps {
 
 export class LambdaStack extends Stack {
   // Public properties to be accessed by other stacks
-  public readonly apiHandler: NodejsFunction;
-  public readonly aggregationHandler: NodejsFunction;
+  public readonly apiHandler: Function;
+  public readonly aggregationHandler: Function;
 
   constructor(scope: Construct, id: string, props: LambdaStackProps) {
     super(scope, id, props);
 
     const { ordersTable, aggregatedDataBucket } = props;
 
+    console.log('loading code from directory', path.join(__dirname, '../../../../../../'));
+
     // Create the API Lambda function
-    this.apiHandler = new NodejsFunction(this, 'ApiHandler', {
+    this.apiHandler = new Function(this, 'ApiHandler', {
       runtime: Runtime.NODEJS_20_X,
-      handler: 'handler',
-      entry: path.join(__dirname, '../../../../api/src/index.js'),
+      handler: 'src/index.handler',
+      code: Code.fromAsset(path.join(__dirname, '../../../../../../'), {
+        bundling: {
+          image: Runtime.NODEJS_20_X.bundlingImage,
+          command: [
+            'bash', '-c', [
+              'cp -r /asset-input/packages/api/dist/src /asset-output/',
+              'cp -r /asset-input/packages/api/package.json /asset-output/',
+              'cd /asset-output',
+            ].join(' && ')
+          ],
+        },
+      }),
       timeout: Duration.seconds(30),
       memorySize: 1024,
       environment: {
@@ -44,10 +56,21 @@ export class LambdaStack extends Stack {
     aggregatedDataBucket.grantRead(this.apiHandler);
 
     // Create the Aggregation Lambda function
-    this.aggregationHandler = new NodejsFunction(this, 'AggregationHandler', {
+    this.aggregationHandler = new Function(this, 'AggregationHandler', {
       runtime: Runtime.NODEJS_20_X,
-      handler: 'handler',
-      entry: path.join(__dirname, '../../../../api/src/aggregation.js'), // This file doesn't exist yet
+      handler: 'src/aggregation.handler',
+      code: Code.fromAsset(path.join(__dirname, '../../../../../../'), {
+        bundling: {
+          image: Runtime.NODEJS_20_X.bundlingImage,
+          command: [
+            'bash', '-c', [
+              'cp -r /asset-input/packages/api/dist/src /asset-output/',
+              'cp -r /asset-input/packages/api/package.json /asset-output/',
+              'cd /asset-output',
+            ].join(' && ')
+          ],
+        },
+      }),
       timeout: Duration.seconds(60),
       memorySize: 1024,
       environment: {
