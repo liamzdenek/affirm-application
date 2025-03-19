@@ -4,6 +4,8 @@
 
 We have successfully completed the Merchant Analytics Dashboard project. The architecture has been defined and documented, the NX workspace has been initialized, and we have implemented both the frontend and API components. We have also implemented the AWS CDK infrastructure for deployment using TypeScript, configured NX project tasks for the API and CDK packages, and fixed TypeScript configuration issues. All TypeScript errors have been resolved, and the application has been successfully deployed to AWS using CDK.
 
+We have also enhanced the analytics metrics to include counts for payment plans and products, and updated the Dashboard to display these metrics. Additionally, we've added a Recent Orders section to the Dashboard to show the most recent orders for a merchant.
+
 ## Recent Decisions
 
 1. **Combined UI Application**: Decided to combine the order form and dashboard into a single UI application to simplify development for this demo project.
@@ -30,6 +32,12 @@ We have successfully completed the Merchant Analytics Dashboard project. The arc
 
 12. **TypeScript Configuration**: Added tsconfig.json files for API and CDK packages with proper module resolution and output paths.
 
+13. **Enhanced Metrics**: Added counts for payment plans and products to provide more detailed analytics.
+
+14. **Recent Orders Display**: Added a section to the Dashboard to display recent orders for a merchant.
+
+15. **Order History Simulation**: Created a script to generate simulated order history data for the past month with natural undulations for time of day and day of week.
+
 ## Current Focus Areas
 
 1. **Monitoring**: Setting up monitoring and alerting for the deployed application.
@@ -39,6 +47,10 @@ We have successfully completed the Merchant Analytics Dashboard project. The arc
 3. **Performance Optimization**: Identifying and addressing performance bottlenecks.
 
 4. **Feature Enhancements**: Planning and implementing additional features based on user feedback.
+   - Added auto-refresh functionality to the Dashboard to automatically load new data every 60 seconds
+   - Implemented tab focus detection to pause auto-refresh when the user is not viewing the tab
+   - Added relative time display to show when data was last refreshed
+   - Added manual refresh button for immediate data updates
 
 ## Key Considerations
 
@@ -111,6 +123,9 @@ The project has evolved through several iterations:
 21. Fixed date comparison logic in analytics endpoint to properly filter S3 objects
 22. Updated frontend configuration to use environment variables for API base URL
 23. Simplified frontend deployment in CDK stack to avoid bundling issues
+24. Enhanced metrics to include counts for payment plans and products
+25. Added Recent Orders section to the Dashboard
+26. Created a script to generate simulated order history data
 
 ## Recent Debugging and Fixes
 
@@ -136,3 +151,13 @@ The project has evolved through several iterations:
    - Added detailed logging for S3 operations
    - Added detailed logging for DynamoDB operations
    - Added detailed logging for aggregation calculations
+
+6. **Enhanced Metrics**: Updated the aggregation logic to track payment plan and product counts:
+   - Modified the AggregatedData interface to include counts for payment plans and products
+   - Updated the aggregation Lambda function to track these counts
+   - Updated the Dashboard component to display these metrics
+
+7. **Recent Orders**: Added a section to the Dashboard to display recent orders:
+   - Added a function to fetch recent orders from the API
+   - Added a component to display the orders with styling
+   - Added CSS styles for the Recent Orders section

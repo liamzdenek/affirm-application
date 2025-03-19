@@ -14,10 +14,97 @@
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   padding: 1.5rem;
   background-color: #f9f9f9;
   border-radius: 4px;
+}
+
+/* Refresh Controls */
+.refreshControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem 1.5rem;
+  background-color: #f0f7ff;
+  border-radius: 4px;
+  border-left: 4px solid #3f51b5;
+}
+
+.lastRefreshInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.refreshLabel {
+  font-weight: 600;
+  color: #555;
+}
+
+.refreshTime {
+  font-weight: 500;
+  color: #3f51b5;
+  background-color: rgba(63, 81, 181, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px;
+}
+
+.refreshActions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.refreshButton {
+  padding: 0.5rem 1rem;
+  background-color: #3f51b5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.refreshButton:hover {
+  background-color: #303f9f;
+}
+
+.refreshButton:disabled {
+  background-color: #9fa8da;
+  cursor: not-allowed;
+}
+
+.autoRefreshToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.autoRefreshToggle input[type="checkbox"] {
+  width: 1.2rem;
+  height: 1.2rem;
+  cursor: pointer;
+}
+
+.autoRefreshToggle label {
+  font-size: 0.9rem;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.countdownTimer {
+  font-size: 0.8rem;
+  color: #3f51b5;
+  background-color: rgba(63, 81, 181, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  white-space: nowrap;
 }
 
 .controlGroup {
@@ -81,6 +168,132 @@
   color: #666;
   background-color: #f5f5f5;
   border-radius: 4px;
+}
+
+.countsContainer {
+  margin-top: 1rem;
+}
+
+.countsContainer h4 {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.countsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.countItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  border-left: 4px solid #3f51b5;
+}
+
+.countLabel {
+  font-weight: 500;
+  color: #333;
+}
+
+.countValue {
+  font-weight: 600;
+  color: #3f51b5;
+  background-color: rgba(63, 81, 181, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px;
+}
+
+/* Recent Orders Styles */
+.recentOrdersContainer {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.recentOrdersList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.orderItem {
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.successOrder {
+  border-left: 4px solid #4caf50;
+  background-color: rgba(76, 175, 80, 0.05);
+}
+
+.failedOrder {
+  border-left: 4px solid #f44336;
+  background-color: rgba(244, 67, 54, 0.05);
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+
+.orderTime {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.orderStatus {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+}
+
+.successStatus {
+  color: #4caf50;
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.failedStatus {
+  color: #f44336;
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+.orderDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.orderDetail {
+  display: flex;
+  justify-content: space-between;
+}
+
+.orderDetailLabel {
+  font-weight: 500;
+  color: #555;
+}
+
+.orderDetailValue {
+  font-weight: 600;
+  color: #333;
 }
 
 @media (min-width: 768px) {

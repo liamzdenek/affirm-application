@@ -81,7 +81,7 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<{ statusCode:
 async function processOrder(order: Order): Promise<void> {
   console.log('Processing order:', order);
   
-  const { merchantId, timestamp, amount, paymentPlan, status } = order;
+  const { merchantId, timestamp, amount, paymentPlan, status, productId } = order;
   
   // Get the hour and day from the timestamp
   const date = new Date(timestamp);
@@ -92,11 +92,11 @@ async function processOrder(order: Order): Promise<void> {
   
   // Update hourly aggregated data
   console.log('Updating hourly aggregated data');
-  await updateAggregatedData(merchantId, 'hourly', hourKey, amount, paymentPlan, status);
+  await updateAggregatedData(merchantId, 'hourly', hourKey, amount, paymentPlan, status, productId);
   
   // Update daily aggregated data
   console.log('Updating daily aggregated data');
-  await updateAggregatedData(merchantId, 'daily', dayKey, amount, paymentPlan, status);
+  await updateAggregatedData(merchantId, 'daily', dayKey, amount, paymentPlan, status, productId);
   
   console.log('Order processing completed');
 }
@@ -110,9 +110,10 @@ async function updateAggregatedData(
   timeKey: string,
   amount: number,
   paymentPlan: string,
-  status: 'success' | 'failure'
+  status: 'success' | 'failure',
+  productId: string
 ): Promise<void> {
-  console.log('Updating aggregated data:', { merchantId, granularity, timeKey, amount, paymentPlan, status });
+  console.log('Updating aggregated data:', { merchantId, granularity, timeKey, amount, paymentPlan, status, productId });
   
   // Create a unique key for the aggregated data
   const dataKey = `${merchantId}/${granularity}/${timeKey}`;
@@ -135,6 +136,10 @@ async function updateAggregatedData(
           overall: 0,
           byPaymentPlan: {},
         },
+        counts: {
+          byPaymentPlan: {},
+          byProduct: {},
+        },
       },
     };
   } else {
@@ -154,6 +159,23 @@ async function updateAggregatedData(
     data.metrics.volume.failed += 1;
     console.log('Incremented failed orders count');
   }
+  
+  // Update payment plan and product counts
+  // Initialize payment plan count if it doesn't exist
+  if (!data.metrics.counts.byPaymentPlan[paymentPlan]) {
+    data.metrics.counts.byPaymentPlan[paymentPlan] = 0;
+  }
+  // Increment payment plan count
+  data.metrics.counts.byPaymentPlan[paymentPlan] += 1;
+  console.log(`Incremented count for payment plan ${paymentPlan} to ${data.metrics.counts.byPaymentPlan[paymentPlan]}`);
+  
+  // Initialize product count if it doesn't exist
+  if (!data.metrics.counts.byProduct[productId]) {
+    data.metrics.counts.byProduct[productId] = 0;
+  }
+  // Increment product count
+  data.metrics.counts.byProduct[productId] += 1;
+  console.log(`Incremented count for product ${productId} to ${data.metrics.counts.byProduct[productId]}`);
   
   // Update AOV metrics (only for successful orders)
   if (status === 'success') {

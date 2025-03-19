@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import {
   Merchant,
   AnalyticsResponse,
-  SAMPLE_MERCHANTS
+  RecentOrdersResponse,
+  SAMPLE_MERCHANTS,
+  SAMPLE_PRODUCTS,
+  SAMPLE_PAYMENT_PLANS
 } from '@affirm-merchant-analytics/shared';
 import { Line } from 'react-chartjs-2';
 import {
@@ -56,9 +59,101 @@ export function Dashboard() {
   // State for analytics data
   const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse | null>(null);
   
+  // State for recent orders
+  const [recentOrders, setRecentOrders] = useState<RecentOrdersResponse | null>(null);
+  const [isLoadingOrders, setIsLoadingOrders] = useState<boolean>(false);
+  
   // State for loading and error
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // State for auto-refresh
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date());
+  const [isTabFocused, setIsTabFocused] = useState<boolean>(true);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState<boolean>(false);
+  const refreshIntervalRef = useRef<number | null>(null);
+  const [secondsSinceRefresh, setSecondsSinceRefresh] = useState<number>(0);
+  const [secondsUntilNextRefresh, setSecondsUntilNextRefresh] = useState<number>(60);
+  
+  // Fetch analytics data from API
+  const fetchAnalyticsData = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await axios.get(`${API_BASE_URL}/merchants/${merchantId}/analytics`, {
+        params: {
+          granularity,
+          startDate,
+          endDate
+        }
+      });
+      
+      setAnalyticsData(response.data);
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+      setError('Failed to fetch analytics data. Please try again.');
+      setAnalyticsData(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Fetch recent orders from API
+  const fetchRecentOrders = async () => {
+    setIsLoadingOrders(true);
+    
+    try {
+      const response = await axios.get(`${API_BASE_URL}/merchants/${merchantId}/orders`, {
+        params: {
+          limit: 10 // Get the 10 most recent orders
+        }
+      });
+      
+      setRecentOrders(response.data);
+    } catch (error) {
+      console.error('Error fetching recent orders:', error);
+      setRecentOrders(null);
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  };
+  
+  // Memoized refresh function
+  const refreshData = useCallback(async () => {
+    if (merchantId && startDate && endDate) {
+      await Promise.all([
+        fetchAnalyticsData(),
+        fetchRecentOrders()
+      ]);
+      const now = new Date();
+      setLastRefreshTime(now);
+      setSecondsSinceRefresh(0);
+      
+      // Reset countdown timer if auto-refresh is enabled
+      if (autoRefreshEnabled) {
+        setSecondsUntilNextRefresh(60);
+      }
+    }
+  }, [merchantId, startDate, endDate, granularity, autoRefreshEnabled]);
+  
+  // Helper function to format relative time
+  const getRelativeTimeString = (date: Date) => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 10) {
+      return 'just now';
+    } else if (diffInSeconds < 60) {
+      return `${diffInSeconds} seconds ago`;
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
+    } else {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+    }
+  };
   
   // Set default date range (last 7 days)
   useEffect(() => {
@@ -84,33 +179,70 @@ export function Dashboard() {
   // Fetch analytics data when merchant, date range, or granularity changes
   useEffect(() => {
     if (merchantId && startDate && endDate) {
-      fetchAnalyticsData();
+      refreshData();
     }
-  }, [merchantId, startDate, endDate, granularity]);
+  }, [merchantId, startDate, endDate, granularity, refreshData]);
   
-  // Fetch analytics data from API
-  const fetchAnalyticsData = async () => {
-    setIsLoading(true);
-    setError(null);
+  // Set up tab focus/blur event listeners
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsTabFocused(document.visibilityState === 'visible');
+    };
     
-    try {
-      const response = await axios.get(`${API_BASE_URL}/merchants/${merchantId}/analytics`, {
-        params: {
-          granularity,
-          startDate,
-          endDate
-        }
-      });
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+  
+  // Update seconds since last refresh every second
+  useEffect(() => {
+    const updateTimerInterval = window.setInterval(() => {
+      const now = new Date();
+      const diffInSeconds = Math.floor((now.getTime() - lastRefreshTime.getTime()) / 1000);
+      setSecondsSinceRefresh(diffInSeconds);
       
-      setAnalyticsData(response.data);
-    } catch (error) {
-      console.error('Error fetching analytics data:', error);
-      setError('Failed to fetch analytics data. Please try again.');
-      setAnalyticsData(null);
-    } finally {
-      setIsLoading(false);
+      // If auto-refresh is enabled, update countdown timer
+      if (autoRefreshEnabled) {
+        const nextRefreshIn = Math.max(0, 60 - (diffInSeconds % 60));
+        setSecondsUntilNextRefresh(nextRefreshIn);
+      }
+    }, 1000);
+    
+    return () => {
+      clearInterval(updateTimerInterval);
+    };
+  }, [lastRefreshTime, autoRefreshEnabled]);
+  
+  // Set up auto-refresh interval
+  useEffect(() => {
+    // Clear any existing interval
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+      refreshIntervalRef.current = null;
     }
-  };
+    
+    // Only set up interval if auto-refresh is enabled
+    if (autoRefreshEnabled) {
+      // Reset countdown timer
+      setSecondsUntilNextRefresh(60);
+      
+      refreshIntervalRef.current = window.setInterval(() => {
+        // Only refresh if the tab is focused
+        if (isTabFocused && merchantId && startDate && endDate) {
+          refreshData();
+        }
+      }, 60000); // 60 seconds
+    }
+    
+    // Clean up on unmount
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, [autoRefreshEnabled, isTabFocused, merchantId, startDate, endDate, refreshData]);
   
   // Prepare chart data for volume
   const volumeChartData = {
@@ -233,6 +365,45 @@ export function Dashboard() {
         </div>
       </div>
       
+      {/* Refresh Controls */}
+      <div className={styles.refreshControls}>
+        <div className={styles.lastRefreshInfo}>
+          <span className={styles.refreshLabel}>Last refreshed:</span>
+          <span className={styles.refreshTime}>
+            {secondsSinceRefresh < 60
+              ? `${secondsSinceRefresh} ${secondsSinceRefresh === 1 ? 'second' : 'seconds'} ago`
+              : getRelativeTimeString(lastRefreshTime)}
+          </span>
+        </div>
+        
+        <div className={styles.refreshActions}>
+          <button
+            className={styles.refreshButton}
+            onClick={() => refreshData()}
+            disabled={isLoading || isLoadingOrders}
+          >
+            {isLoading || isLoadingOrders ? 'Refreshing...' : 'Refresh Now'}
+          </button>
+          
+          <div className={styles.autoRefreshToggle}>
+            <input
+              type="checkbox"
+              id="autoRefresh"
+              checked={autoRefreshEnabled}
+              onChange={(e) => setAutoRefreshEnabled(e.target.checked)}
+            />
+            <label htmlFor="autoRefresh">
+              Auto-refresh every 60 seconds
+              {autoRefreshEnabled && (
+                <span className={styles.countdownTimer}>
+                  (next refresh in {secondsUntilNextRefresh}s)
+                </span>
+              )}
+            </label>
+          </div>
+        </div>
+      </div>
+      
       {/* Loading and Error States */}
       {isLoading && (
         <div className={styles.loading}>Loading analytics data...</div>
@@ -253,6 +424,101 @@ export function Dashboard() {
           <div className={styles.chart}>
             <h3 className={styles.chartTitle}>Average Order Value</h3>
             <Line data={aovChartData} options={chartOptions} />
+          </div>
+          
+          {/* Payment Plan Counts */}
+          <div className={styles.chart}>
+            <h3 className={styles.chartTitle}>Payment Plan Distribution</h3>
+            {analyticsData.timePoints.length > 0 && (
+              <div className={styles.countsContainer}>
+                <h4>Most Recent Data ({formatDate(analyticsData.timePoints[analyticsData.timePoints.length - 1].timestamp)})</h4>
+                <div className={styles.countsList}>
+                  {Object.entries(analyticsData.timePoints[analyticsData.timePoints.length - 1].metrics.counts.byPaymentPlan).map(([planId, count]) => (
+                    <div key={planId} className={styles.countItem}>
+                      <span className={styles.countLabel}>
+                        {planId === 'plan-1' ? 'Pay in 4' :
+                         planId === 'plan-2' ? '3 Month Financing' :
+                         planId === 'plan-3' ? '6 Month Financing' :
+                         planId === 'plan-4' ? '12 Month Financing' : planId}
+                      </span>
+                      <span className={styles.countValue}>{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Product Counts */}
+          <div className={styles.chart}>
+            <h3 className={styles.chartTitle}>Product Distribution</h3>
+            {analyticsData.timePoints.length > 0 && (
+              <div className={styles.countsContainer}>
+                <h4>Most Recent Data ({formatDate(analyticsData.timePoints[analyticsData.timePoints.length - 1].timestamp)})</h4>
+                <div className={styles.countsList}>
+                  {Object.entries(analyticsData.timePoints[analyticsData.timePoints.length - 1].metrics.counts.byProduct).map(([productId, count]) => {
+                    // Find product name based on ID
+                    let productName = productId;
+                    if (productId.startsWith('product-1-1')) productName = 'Designer Handbag';
+                    else if (productId.startsWith('product-1-2')) productName = 'Premium Jeans';
+                    else if (productId.startsWith('product-1-3')) productName = 'Cashmere Sweater';
+                    else if (productId.startsWith('product-2-1')) productName = 'Smartphone';
+                    else if (productId.startsWith('product-2-2')) productName = 'Laptop';
+                    else if (productId.startsWith('product-2-3')) productName = 'Wireless Headphones';
+                    else if (productId.startsWith('product-3-1')) productName = 'Sectional Sofa';
+                    else if (productId.startsWith('product-3-2')) productName = 'Dining Table';
+                    else if (productId.startsWith('product-3-3')) productName = 'Bed Frame';
+                    
+                    return (
+                      <div key={productId} className={styles.countItem}>
+                        <span className={styles.countLabel}>{productName}</span>
+                        <span className={styles.countValue}>{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Recent Orders */}
+      {recentOrders && recentOrders.orders.length > 0 && (
+        <div className={styles.recentOrdersContainer}>
+          <h3 className={styles.sectionTitle}>Recent Orders</h3>
+          <div className={styles.recentOrdersList}>
+            {recentOrders.orders.map(order => {
+              // Find product name based on ID
+              const product = SAMPLE_PRODUCTS.find(p => p.id === order.productId);
+              // Find payment plan name based on ID
+              const paymentPlan = SAMPLE_PAYMENT_PLANS.find(p => p.id === order.paymentPlan);
+              
+              return (
+                <div key={order.orderId} className={`${styles.orderItem} ${order.status === 'success' ? styles.successOrder : styles.failedOrder}`}>
+                  <div className={styles.orderHeader}>
+                    <span className={styles.orderTime}>{new Date(order.timestamp).toLocaleString()}</span>
+                    <span className={`${styles.orderStatus} ${order.status === 'success' ? styles.successStatus : styles.failedStatus}`}>
+                      {order.status === 'success' ? 'Success' : 'Failed'}
+                    </span>
+                  </div>
+                  <div className={styles.orderDetails}>
+                    <div className={styles.orderDetail}>
+                      <span className={styles.orderDetailLabel}>Product:</span>
+                      <span className={styles.orderDetailValue}>{product ? product.name : order.productId}</span>
+                    </div>
+                    <div className={styles.orderDetail}>
+                      <span className={styles.orderDetailLabel}>Amount:</span>
+                      <span className={styles.orderDetailValue}>${order.amount.toFixed(2)}</span>
+                    </div>
+                    <div className={styles.orderDetail}>
+                      <span className={styles.orderDetailLabel}>Payment Plan:</span>
+                      <span className={styles.orderDetailValue}>{paymentPlan ? paymentPlan.name : order.paymentPlan}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

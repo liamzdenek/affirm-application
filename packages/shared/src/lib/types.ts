@@ -51,6 +51,14 @@ export interface AnalyticsResponse {
           [planName: string]: number;
         };
       };
+      counts: {
+        byPaymentPlan: {
+          [planId: string]: number;
+        };
+        byProduct: {
+          [productId: string]: number;
+        };
+      };
     };
   }>;
 }
@@ -107,6 +115,14 @@ export interface AggregatedData {
       overall: number;
       byPaymentPlan: {
         [planName: string]: number;
+      };
+    };
+    counts: {
+      byPaymentPlan: {
+        [planId: string]: number;
+      };
+      byProduct: {
+        [productId: string]: number;
       };
     };
   };
