@@ -45,20 +45,26 @@ affirm-merchant-analytics/
 ### Package Initialization Commands
 
 ```bash
-# Create NX workspace
-npx create-nx-workspace affirm-merchant-analytics --preset=ts
+# Create NX workspace (already done)
+# npx create-nx-workspace affirm-merchant-analytics --preset=ts
 
-# Add frontend application (with TypeScript)
-npx nx g @nrwl/react:app frontend --directory=packages/frontend --style=css --js=false --strict
+# Install React plugin
+npm install -D @nx/react
+
+# Add frontend application (with TypeScript and Vite)
+npx nx g @nx/react:app frontend --directory=packages/frontend --style=css --bundler=vite --js=false --strict
+
+# Install Node.js plugin
+npm install -D @nx/node
 
 # Add shared library (with TypeScript)
-npx nx g @nrwl/js:lib shared --directory=packages/shared --buildable --js=false --strict
+npx nx g @nx/js:lib shared --directory=packages/shared --buildable --js=false --strict
 
 # Add API library (with TypeScript)
-npx nx g @nrwl/js:lib api --directory=packages/api --buildable --js=false --strict
+npx nx g @nx/node:lib api --directory=packages/api --buildable --js=false --strict
 
 # Add CDK library (with TypeScript)
-npx nx g @nrwl/js:lib cdk --directory=packages/cdk --buildable --js=false --strict
+npx nx g @nx/js:lib cdk --directory=packages/cdk --buildable --js=false --strict
 ```
 
 The `--js=false` flag ensures TypeScript is used, and `--strict` enables strict TypeScript checking.

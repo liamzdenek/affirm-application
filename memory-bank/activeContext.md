@@ -2,7 +2,7 @@
 
 ## Current Status
 
-We are at the initial planning and architecture phase of the Merchant Analytics Dashboard project. The architecture has been defined and documented, and we are preparing to begin implementation.
+We are at the initial implementation phase of the Merchant Analytics Dashboard project. The architecture has been defined and documented, the NX workspace has been initialized, and we are now setting up the package structure.
 
 ## Recent Decisions
 
@@ -16,11 +16,11 @@ We are at the initial planning and architecture phase of the Merchant Analytics 
 
 5. **TypeScript Enforcement**: Confirmed that all components will be written in TypeScript with strict type checking.
 
-6. **NX Command Verification**: Verified the NX commands to ensure they initialize packages with TypeScript support.
+6. **NX Command Updates**: Updated the NX commands to use the current plugin names (@nx/react, @nx/node, @nx/js) instead of the outdated ones (@nrwl/react).
 
 ## Current Focus Areas
 
-1. **Project Initialization**: Setting up the NX monorepo structure and initializing all packages.
+1. **Package Initialization**: Installing the necessary NX plugins and generating the package structure.
 
 2. **Interface Definition**: Finalizing the API contracts and data models between system components.
 
@@ -40,19 +40,30 @@ We are at the initial planning and architecture phase of the Merchant Analytics 
 
 ## Next Steps
 
-1. **Initialize NX Workspace**: Create the NX monorepo and initialize all packages with the correct TypeScript settings.
+1. **Install NX Plugins**: Install the React and Node.js plugins for NX.
+   ```
+   npm install -D @nx/react @nx/node
+   ```
 
-2. **Implement Data Storage**: Set up the DynamoDB table and stream configuration.
+2. **Generate Packages**: Create the frontend, shared, api, and cdk packages using NX generators.
+   ```
+   npx nx g @nx/react:app frontend --directory=packages/frontend --style=css --bundler=vite --js=false --strict
+   npx nx g @nx/js:lib shared --directory=packages/shared --buildable --js=false --strict
+   npx nx g @nx/node:lib api --directory=packages/api --buildable --js=false --strict
+   npx nx g @nx/js:lib cdk --directory=packages/cdk --buildable --js=false --strict
+   ```
 
-3. **Develop Aggregation Logic**: Implement the Lambda function for processing DynamoDB stream events and calculating metrics.
+3. **Implement Data Storage**: Set up the DynamoDB table and stream configuration.
 
-4. **Create API Endpoints**: Build the Express application with routes for order submission and analytics retrieval.
+4. **Develop Aggregation Logic**: Implement the Lambda function for processing DynamoDB stream events and calculating metrics.
 
-5. **Develop Frontend**: Implement the React application with order form and dashboard views.
+5. **Create API Endpoints**: Build the Express application with routes for order submission and analytics retrieval.
 
-6. **Deploy Infrastructure**: Use CDK to deploy all components to AWS.
+6. **Develop Frontend**: Implement the React application with order form and dashboard views.
 
-7. **Test End-to-End**: Verify the complete data flow from order submission to analytics visualization.
+7. **Deploy Infrastructure**: Use CDK to deploy all components to AWS.
+
+8. **Test End-to-End**: Verify the complete data flow from order submission to analytics visualization.
 
 ## Open Questions
 
@@ -75,3 +86,4 @@ The architecture has evolved through several iterations:
 5. Specified metrics (AOV and Volume) and granularities (hourly and daily)
 6. Removed customerSegment attribute as it wasn't adding value
 7. Enforced merchant-specific granularity for all analytics queries
+8. Updated NX commands to use current plugin names (@nx/react, @nx/node, @nx/js)

@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/frontend-e2e"
+    },
+    {
+      "path": "./packages/frontend"
+    },
+    {
+      "path": "./packages/shared"
+    },
+    {
+      "path": "./packages/api"
+    },
+    {
+      "path": "./packages/cdk"
+    }
+  ]
+}

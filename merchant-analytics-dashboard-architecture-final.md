@@ -333,29 +333,39 @@ packages/cdk/lib/
 
 To initialize the NX workspace and packages, we'll use the following commands:
 
-1. **Create NX workspace**:
+1. **Create NX workspace** (already done):
    ```
    npx create-nx-workspace affirm-merchant-analytics --preset=ts
    ```
 
-2. **Add frontend application** (with TypeScript):
+2. **Install React plugin**:
    ```
-   npx nx g @nrwl/react:app frontend --directory=packages/frontend --style=css --js=false --strict
-   ```
-
-3. **Add shared library** (with TypeScript):
-   ```
-   npx nx g @nrwl/js:lib shared --directory=packages/shared --buildable --js=false --strict
+   npm install -D @nx/react
    ```
 
-4. **Add API library** (with TypeScript):
+3. **Add frontend application** (with TypeScript and Vite):
    ```
-   npx nx g @nrwl/js:lib api --directory=packages/api --buildable --js=false --strict
+   npx nx g @nx/react:app frontend --directory=packages/frontend --style=css --bundler=vite --js=false --strict
    ```
 
-5. **Add CDK library** (with TypeScript):
+4. **Install Node.js plugin**:
    ```
-   npx nx g @nrwl/js:lib cdk --directory=packages/cdk --buildable --js=false --strict
+   npm install -D @nx/node
+   ```
+
+5. **Add shared library** (with TypeScript):
+   ```
+   npx nx g @nx/js:lib shared --directory=packages/shared --buildable --js=false --strict
+   ```
+
+6. **Add API library** (with TypeScript):
+   ```
+   npx nx g @nx/node:lib api --directory=packages/api --buildable --js=false --strict
+   ```
+
+7. **Add CDK library** (with TypeScript):
+   ```
+   npx nx g @nx/js:lib cdk --directory=packages/cdk --buildable --js=false --strict
    ```
 
 The `--js=false` flag ensures TypeScript is used, and `--strict` enables strict TypeScript checking.
