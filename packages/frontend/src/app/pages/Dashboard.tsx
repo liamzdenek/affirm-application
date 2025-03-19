@@ -484,7 +484,7 @@ export function Dashboard() {
       )}
       
       {/* Recent Orders */}
-      {recentOrders && recentOrders.orders.length > 0 && (
+      {recentOrders && recentOrders.orders.length > 0 && !isLoading && (
         <div className={styles.recentOrdersContainer}>
           <h3 className={styles.sectionTitle}>Recent Orders</h3>
           <div className={styles.recentOrdersList}>

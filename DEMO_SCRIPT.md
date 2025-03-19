@@ -7,47 +7,28 @@
 5. Conclusion & Why Affirm (1 minute)
 
 ## 1. Introduction (1 minute)
-1. Hello, I'm Liam. I'm a hands-on SWE with 14 years of experience and a track record of delivering technical impact that drives business outcomes.
-2. I'm interested in the Senior Staff Software Engineer role at Affirm, and I'd like to demonstrate my technical capabilities and business alignment.
+1. Hello Vishal, Geddes, Libor, and the team at Affirm. I'm Liam. I'm a hands-on SWE with 14 YOE and a track record of extraordinary technical impact.
+2. I'm interested in working in Engineering at Affirm.
 3. Instead of a traditional application, I've built a functional demo that showcases both my technical skills and my understanding of Affirm's business needs.
-4. I've created a Merchant Analytics Dashboard that addresses a critical challenge in the BNPL space: merchant visibility into the business impact of offering Affirm.
-5. This dashboard helps merchants understand the impact of offering Affirm as a payment option, which is critical for merchant adoption and retention in a competitive BNPL landscape.
-6. Unlike traditional payment methods, BNPL providers need to demonstrate clear ROI to merchants to drive adoption and reduce churn.
-7. This tool demonstrates how real-time analytics can bridge this gap by providing merchants with actionable insights into how Affirm affects their business metrics.
-8. I completed this end-to-end implementation in just one day, demonstrating my ability to rapidly ship valuable features that could enhance Affirm's merchant value proposition.
+4. I've created a Merchant Analytics Dashboard that addresses a critical challenge in the BNPL space: visibility into the business impact of offering Affirm.
+5. This dashboard helps merchants and Affirm's commercial partners understand the impact of offering Affirm as a payment option. This is critical for adoption and retention of merchants and commercial partners in a competitive BNPL landscape.
+6. Unlike traditional payment methods, BNPL providers need to demonstrate clear value to commercial partners such as Shopify to drive adoption and reduce churn.
+7. This tool demonstrates how real-time analytics can bridge this gap by providing merchants and commercial partners with actionable insights into how Affirm affects their core business metrics.
+8. I completed this end-to-end implementation in just one day, demonstrating my ability to rapidly ship valuable features that could enhance Affirm's value proposition.
 
 ## 2. Technical Architecture & Implementation (1.5 minutes)
-1. Let me walk you through the technical implementation that showcases my versatility across the full stack:
-   1. Order submission through a form interface
-   2. Real-time data processing via DynamoDB Streams
-   3. Aggregation of metrics by merchant, time period, and payment plan
-   4. Serverless API for data retrieval
-   5. Interactive dashboard for visualization
-   6. Everything deployed with AWS CDK
+1. Overview
+   1. First, I created a page to submit orders.
+   2. Those orders are submitted to a HTTP API hosted in an AWS Lambda Function via API Gateway
+   3. Each order received gets saved into DynamoDB
+   4. DynamoDB is configured with a DynamoDB Stream that triggers this aggregation Lambda function
+   5. We compute some metrics about the recent transactions in real time and with different granularities, and save snapshots to s3
+   6. That same HTTP API from earlier has an analytics endpoint that retrieves the live aggregated metrics
+   7. Those analytics are consumed by our UI application, which uses React.
+   8. Then, I made a one-off script to backfill the database with order history so our demo doesn't look empty.
+   9. Finally, everything is deployed to AWS with AWS CDK
 
-2. Technical Implementation Details
-   1. Modern React frontend with TypeScript, Vite, and CSS Modules
-   2. Serverless backend using AWS Lambda with Express
-   3. Event-driven architecture with DynamoDB Streams
-   4. Materialized view pattern with S3 for aggregated metrics
-   5. Infrastructure as code using AWS CDK
-   6. NX monorepo for efficient project organization
-
-3. The system follows a serverless architecture with these key components:
-   1. DynamoDB for order data persistence
-   2. Lambda function triggered by DynamoDB Stream for real-time aggregates
-   3. S3 storage for aggregated metrics
-   4. API Gateway with a single Lambda function using Express
-   5. React frontend hosted on S3 with CloudFront distribution
-
-4. The aggregation Lambda function is particularly powerful:
-   1. It's triggered automatically by DynamoDB Streams as new orders arrive
-   2. It calculates key metrics like AOV and volume in real-time
-   3. It segments data by payment plan to show how different financing options affect AOV
-   4. It tracks successful and failed payments separately
-   5. It maintains both hourly and daily granularities for different analysis needs
-
-5. I focused on building a production-ready solution that demonstrates both technical excellence and practical business value, which I believe is what Affirm is looking for in this role.
+2. I focused on building a production-ready, highly scalable solution that demonstrates a balance of technical excellence and practical business value, which I believe is what Affirm is looking for in its Engineers.
 
 ## 3. User Experience & Business Impact (1 minute)
 1. Let me show you the application from a user's perspective:
@@ -67,29 +48,19 @@
    4. For the business: Competitive advantage over other BNPL providers
 
 ## 4. Real-time Analytics Demo (1.5 minutes)
-1. Now, I'll demonstrate the real-time nature of the analytics by simulating some orders.
-2. Let's start by submitting a few orders for different merchants with various payment plans.
-3. Watch how the dashboard updates in real-time as the orders flow through the system.
-4. Notice how the metrics are automatically recalculated and the charts updated.
-5. We can also simulate failed payments to see how they're tracked separately.
-6. The system supports both hourly and daily granularity, allowing merchants to analyze both immediate trends and longer-term patterns.
-7. Let's also look at the payment plan breakdown, which shows how different financing options affect AOV.
-8. A key feature is the ability to filter by merchant ID to see merchant-specific analytics. This merchant-centric approach ensures each merchant sees only their relevant data, which was a core requirement for the system.
-9. This real-time visibility gives merchants immediate feedback on their Affirm integration performance.
+1. Try it out CTA
 
 ## 5. Conclusion & Why I'm a fit for Affirm (1 minute)
 1. This project demonstrates my ability to deliver value in several ways relevant to Affirm:
    1. My focus on solving real business problems, specifically merchant adoption and retention
-   2. My technical skills across the full stack: React, TypeScript, serverless architecture, AWS services
-   3. My ability to rapidly deliver within a tight timeframe
-   4. My understanding of the BNPL space and Affirm's business model
-   5. My ability to build systems that provide actionable insights to users, which is a key skill for a Senior Staff Software Engineer
+   2. I demonstrate expertise in distributed services, data processing pipelines, delivering APIs, and UI too.
+   3. I demonstrated my ability to rapidly deliver within a tight timeframe
+   4. I believe I've demonstrated that I wont simply meet the bar, I will raise it.
 
 2. I'm particularly excited about Affirm for several reasons:
-   1. The mission to deliver honest financial products that improve lives resonates with me
-   2. The focus on both technical excellence and business impact aligns with my career goals
-   3. The opportunity to work on systems that operate at scale and make a real difference
-   4. The chance to contribute to a company that's transforming the financial industry
+   1. The mission to deliver honest financial products that improve lives resonates with me, because I'm a person that broadly distrusts credit products.
+   2. I'm excited for the opportunity to have impact on critical business outcomes, and to contribute to core product differentiators.
+   3. Finally, I believe I can accomplish my major learning goal at Affirm while delivering exceptional impact. (improve my product oriented-thinking)
 
-3. I believe this project demonstrates that I'm ready to contribute to Affirm's engineering organization from day one, bringing both technical expertise and business acumen.
-4. Thank you for your consideration, and I look forward to discussing how I can help Affirm continue to innovate and grow.
+3. I believe this project demonstrates that I'm ready to contribute to Affirm's engineering organization from day one, bringing both technical expertise and a product mindset.
+4. Thank you for your consideration, and I look forward to hearing back.
