@@ -24,28 +24,19 @@ export class LambdaStack extends Stack {
     const { ordersTable, aggregatedDataBucket } = props;
 
     console.log('loading code from directory', path.join(__dirname, '../../../../../../'));
+    console.log('loading code from directory', path.join(__dirname, '../../../../../../packages/api/dist/api'));
 
     // Create the API Lambda function
     this.apiHandler = new Function(this, 'ApiHandler', {
       runtime: Runtime.NODEJS_20_X,
-      handler: 'src/index.handler',
-      code: Code.fromAsset(path.join(__dirname, '../../../../../../'), {
-        bundling: {
-          image: Runtime.NODEJS_20_X.bundlingImage,
-          command: [
-            'bash', '-c', [
-              'cp -r /asset-input/packages/api/dist/src /asset-output/',
-              'cp -r /asset-input/packages/api/package.json /asset-output/',
-              'cd /asset-output',
-            ].join(' && ')
-          ],
-        },
-      }),
+      handler: 'index.handler',
+      code: Code.fromAsset(path.join(__dirname, '../../../../../../packages/api/dist/api')),
       timeout: Duration.seconds(30),
       memorySize: 1024,
       environment: {
         NODE_ENV: 'production',
         AGGREGATED_DATA_BUCKET: aggregatedDataBucket.bucketName,
+        ORDERS_TABLE: ordersTable.tableName,
       },
     });
 
@@ -58,24 +49,14 @@ export class LambdaStack extends Stack {
     // Create the Aggregation Lambda function
     this.aggregationHandler = new Function(this, 'AggregationHandler', {
       runtime: Runtime.NODEJS_20_X,
-      handler: 'src/aggregation.handler',
-      code: Code.fromAsset(path.join(__dirname, '../../../../../../'), {
-        bundling: {
-          image: Runtime.NODEJS_20_X.bundlingImage,
-          command: [
-            'bash', '-c', [
-              'cp -r /asset-input/packages/api/dist/src /asset-output/',
-              'cp -r /asset-input/packages/api/package.json /asset-output/',
-              'cd /asset-output',
-            ].join(' && ')
-          ],
-        },
-      }),
+      handler: 'aggregation.handler',
+      code: Code.fromAsset(path.join(__dirname, '../../../../../../packages/api/dist/aggregation')),
       timeout: Duration.seconds(60),
       memorySize: 1024,
       environment: {
         NODE_ENV: 'production',
         AGGREGATED_DATA_BUCKET: aggregatedDataBucket.bucketName,
+        ORDERS_TABLE: ordersTable.tableName,
       },
     });
 

@@ -2,6 +2,14 @@ import express from 'express';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
 import serverless from 'serverless-http';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  QueryCommand,
+  ScanCommand
+} from '@aws-sdk/lib-dynamodb';
+import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import {
   OrderRequest,
   OrderResponse,
@@ -15,6 +23,17 @@ import {
   SAMPLE_PRODUCTS,
   SAMPLE_PAYMENT_PLANS
 } from '@affirm-merchant-analytics/shared';
+
+// Initialize DynamoDB client
+const dynamoClient = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(dynamoClient);
+
+// Initialize S3 client
+const s3Client = new S3Client({});
+
+// Get resource names from environment variables or use defaults
+const ORDERS_TABLE = process.env.ORDERS_TABLE || 'OrdersTable';
+const AGGREGATED_DATA_BUCKET = process.env.AGGREGATED_DATA_BUCKET || 'AggregatedDataBucket';
 
 // Create Express app
 const app = express();
@@ -150,7 +169,7 @@ app.get('/payment-plans', (_req, res) => {
 });
 
 // Submit a new order
-app.post('/orders', (req, res) => {
+app.post('/orders', async (req, res) => {
   try {
     const orderRequest = req.body as OrderRequest;
     
@@ -178,11 +197,16 @@ app.post('/orders', (req, res) => {
       productId: orderRequest.productId
     };
     
-    // Store order
-    orders.push(order);
+    // Store order in DynamoDB
+    await docClient.send(
+      new PutCommand({
+        TableName: ORDERS_TABLE,
+        Item: order
+      })
+    );
     
-    // In a real app, this would trigger a DynamoDB Stream event
-    // which would be processed by a Lambda function
+    // This will trigger a DynamoDB Stream event
+    // which will be processed by the aggregation Lambda function
     
     // Return response
     const response: OrderResponse = {
@@ -200,28 +224,38 @@ app.post('/orders', (req, res) => {
 });
 
 // Get recent orders for a merchant
-app.get('/merchants/:merchantId/orders', (req, res) => {
+app.get('/merchants/:merchantId/orders', async (req, res) => {
   try {
     const { merchantId } = req.params;
     const query = req.query as unknown as RecentOrdersQuery;
     const limit = query.limit || 10;
     const status = query.status;
     
-    // Filter orders by merchant ID and status (if provided)
-    let filteredOrders = orders.filter(order => order.merchantId === merchantId);
+    // Query DynamoDB for orders by merchant ID
+    const queryParams: any = {
+      TableName: ORDERS_TABLE,
+      KeyConditionExpression: 'merchantId = :merchantId',
+      ExpressionAttributeValues: {
+        ':merchantId': merchantId
+      },
+      Limit: Number(limit),
+      ScanIndexForward: false // Sort by sort key (orderId) in descending order
+    };
     
+    // Add filter for status if provided
     if (status) {
-      filteredOrders = filteredOrders.filter(order => order.status === status);
+      queryParams.FilterExpression = 'status = :status';
+      queryParams.ExpressionAttributeValues = {
+        ...queryParams.ExpressionAttributeValues,
+        ':status': status
+      };
     }
     
-    // Sort by timestamp (newest first) and limit
-    const sortedOrders = filteredOrders
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, Number(limit));
+    const result = await docClient.send(new QueryCommand(queryParams));
     
     // Return response
     const response: RecentOrdersResponse = {
-      orders: sortedOrders
+      orders: result.Items as Order[]
     };
     
     res.status(200).json(response);
@@ -232,7 +266,7 @@ app.get('/merchants/:merchantId/orders', (req, res) => {
 });
 
 // Get analytics for a merchant
-app.get('/merchants/:merchantId/analytics', (req, res) => {
+app.get('/merchants/:merchantId/analytics', async (req, res) => {
   try {
     const { merchantId } = req.params;
     const query = req.query as unknown as AnalyticsQuery;
@@ -244,8 +278,12 @@ app.get('/merchants/:merchantId/analytics', (req, res) => {
       return;
     }
     
+    // For now, use the in-memory data since we're still setting up the S3 integration
+    // In a real implementation, we would fetch from S3 using a pattern like:
+    // const prefix = `${merchantId}/${granularity}/`;
+    
     // Filter aggregated data by merchant ID, granularity, and date range
-    const filteredData = aggregatedData.filter(data => 
+    const filteredData = aggregatedData.filter(data =>
       data.merchantId === merchantId &&
       data.granularity === granularity &&
       data.timestamp >= startDate &&
@@ -253,7 +291,7 @@ app.get('/merchants/:merchantId/analytics', (req, res) => {
     );
     
     // Sort by timestamp
-    const sortedData = filteredData.sort((a, b) => 
+    const sortedData = filteredData.sort((a, b) =>
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
     

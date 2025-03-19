@@ -5,13 +5,12 @@
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nx/js:tsc",
+      "executor": "nx:run-commands",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/api/dist",
-        "main": "packages/api/src/index.ts",
-        "tsConfig": "packages/api/tsconfig.json",
-        "assets": []
+        "command": "npm run build",
+        "cwd": "packages/api",
+        "outputPath": "packages/api/dist"
       }
     },
     "serve": {
