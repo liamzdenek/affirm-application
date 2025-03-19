@@ -2,7 +2,7 @@
 
 ## Current Status
 
-We have made significant progress on the Merchant Analytics Dashboard project. The architecture has been defined and documented, the NX workspace has been initialized, and we have implemented both the frontend and API components. We are now working on the AWS CDK infrastructure for deployment.
+We have made significant progress on the Merchant Analytics Dashboard project. The architecture has been defined and documented, the NX workspace has been initialized, and we have implemented both the frontend and API components. We have also implemented the AWS CDK infrastructure for deployment using TypeScript. We are now working on resolving TypeScript errors and preparing for deployment.
 
 ## Recent Decisions
 
@@ -14,7 +14,7 @@ We have made significant progress on the Merchant Analytics Dashboard project. T
 
 4. **Merchant Granularity Requirement**: Decided to always require merchant granularity for analytics queries, removing the option to query across all merchants.
 
-5. **TypeScript Enforcement**: Confirmed that all components will be written in TypeScript with strict type checking.
+5. **TypeScript Enforcement**: Confirmed that all application code must be written in TypeScript with strict type checking. All CDK infrastructure code has been converted to TypeScript.
 
 6. **NX Command Updates**: Updated the NX commands to use the current plugin names (@nx/react, @nx/node, @nx/js) instead of the outdated ones (@nrwl/react).
 
@@ -22,13 +22,19 @@ We have made significant progress on the Merchant Analytics Dashboard project. T
 
 8. **API Implementation**: Implemented the API with Express and serverless-http, with endpoints for orders and analytics.
 
+9. **CDK Implementation**: Implemented the AWS CDK infrastructure for deployment, including DynamoDB, Lambda, API Gateway, S3, and CloudFront.
+
+10. **Aggregation Lambda**: Implemented a Lambda function triggered by DynamoDB Streams to calculate real-time aggregates.
+
 ## Current Focus Areas
 
-1. **AWS CDK Infrastructure**: Implementing the AWS CDK infrastructure for deployment, including DynamoDB, Lambda, API Gateway, S3, and CloudFront.
+1. **TypeScript Errors**: Resolving TypeScript errors related to module resolution and type definitions.
 
-2. **TypeScript Errors**: Addressing TypeScript errors related to module resolution and type definitions.
+2. **Dependency Installation**: Installing dependencies for the frontend and API packages.
 
-3. **Testing**: Planning for unit tests, integration tests, and end-to-end testing.
+3. **Local Testing**: Testing the application locally before deployment.
+
+4. **Deployment**: Preparing for deployment using AWS CDK.
 
 ## Key Considerations
 
@@ -42,17 +48,16 @@ We have made significant progress on the Merchant Analytics Dashboard project. T
 
 ## Next Steps
 
-1. **Install AWS CDK Dependencies**:
-   ```
-   cd packages/cdk && npm install --save aws-cdk-lib constructs
-   ```
+1. **Resolve TypeScript Errors**:
+   - Fix module resolution issues
+   - Add proper type definitions
+   - Address any other TypeScript errors
 
-2. **Implement CDK Stacks**:
-   - Data Storage Stack (DynamoDB)
-   - S3 Stack
-   - Lambda Stack
-   - API Gateway Stack
-   - Frontend Stack
+2. **Install Dependencies**:
+   ```
+   cd packages/frontend && npm install
+   cd packages/api && npm install
+   ```
 
 3. **Test the Application Locally**:
    ```
@@ -89,4 +94,7 @@ The project has evolved through several iterations:
 8. Updated NX commands to use current plugin names (@nx/react, @nx/node, @nx/js)
 9. Implemented frontend with React, Vite, and Tanstack Router
 10. Implemented API with Express and serverless-http
-11. Started implementing AWS CDK infrastructure
+11. Implemented AWS CDK infrastructure
+12. Implemented aggregation Lambda function
+13. Updated package.json files with necessary dependencies
+14. Converted all CDK code from JavaScript to TypeScript

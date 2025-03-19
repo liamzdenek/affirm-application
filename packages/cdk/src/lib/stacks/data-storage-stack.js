@@ -1,14 +1,11 @@
-import { Stack, StackProps, RemovalPolicy } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import { Stack, RemovalPolicy } from 'aws-cdk-lib';
 import { Table, AttributeType, BillingMode, StreamViewType } from 'aws-cdk-lib/aws-dynamodb';
-
-export interface DataStorageStackProps extends StackProps {}
 
 export class DataStorageStack extends Stack {
   // Public properties to be accessed by other stacks
-  public readonly ordersTable: Table;
+  ordersTable;
 
-  constructor(scope: Construct, id: string, props?: DataStorageStackProps) {
+  constructor(scope, id, props) {
     super(scope, id, props);
 
     // Create the DynamoDB table for orders

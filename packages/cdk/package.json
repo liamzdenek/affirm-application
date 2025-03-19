@@ -2,7 +2,6 @@
   "name": "@affirm-merchant-analytics/cdk",
   "version": "0.0.1",
   "private": true,
-  "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -14,7 +13,19 @@
       "default": "./dist/index.js"
     }
   },
+  "scripts": {
+    "build": "tsc",
+    "deploy": "cdk deploy",
+    "synth": "cdk synth",
+    "diff": "cdk diff"
+  },
   "dependencies": {
-    "tslib": "^2.3.0"
+    "aws-cdk-lib": "^2.124.0",
+    "constructs": "^10.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "aws-cdk": "^2.124.0",
+    "typescript": "~5.7.2"
   }
 }
