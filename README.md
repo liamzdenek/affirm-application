@@ -1,109 +1,239 @@
-# AffirmMerchantAnalytics
+# Merchant Analytics Dashboard
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A real-time analytics platform for Affirm merchants to visualize customer conversion rates, AOV increases, and payment plan selection patterns.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## Project Overview
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+The Merchant Analytics Dashboard is a real-time analytics platform that helps Affirm merchants understand the impact of offering Affirm as a payment option. It provides up-to-the-minute data on key metrics such as Average Order Value (AOV) and transaction volume, allowing merchants to make data-driven decisions to optimize their integration for maximum benefit.
 
-## Generate a library
+### Core Features
 
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
-```
+- **Real-time Analytics**: Up-to-the-minute data on Affirm integration performance
+- **Multi-merchant Support**: Simulation of different merchant scenarios
+- **Failed Payment Insights**: Tracking and analysis of failed payments
+- **Interactive Dashboard**: Intuitive visualization of key metrics
+- **Order Simulation**: Form to generate sample order data
+- **AWS-native Backend**: Utilizing AWS services for all backend functionality
+- **Infrastructure as Code**: All components deployed using AWS CDK
 
-## Run tasks
+## Architecture
 
-To build the library use:
-
-```sh
-npx nx build pkg1
-```
-
-To run any task with Nx use:
-
-```sh
-npx nx <target> <project-name>
-```
-
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Versioning and releasing
-
-To version and release the library use
+The Merchant Analytics Dashboard follows a serverless, event-driven architecture with clear separation of concerns:
 
 ```
-npx nx release
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                         │
+│                        Merchant Analytics Dashboard                     │
+│                                                                         │
+├─────────────┬─────────────┬─────────────┬─────────────────────────────┐ │
+│             │             │             │                             │ │
+│  Data       │ Aggregation │ API         │  Frontend Application       │ │
+│  Storage    │ Engine      │ Gateway     │  (Order Form + Dashboard)   │ │
+│             │             │             │                             │ │
+└─────────────┴─────────────┴─────────────┴─────────────────────────────┘ │
 ```
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+### Data Flow
 
-[Learn more about Nx release &raquo;](hhttps://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Keep TypeScript project references up to date
-
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
-
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
-
-```sh
-npx nx sync
+#### Write Path
+```
+Order Form → API Gateway → Lambda → DynamoDB → DynamoDB Stream → Aggregation Lambda → S3
 ```
 
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
-
-```sh
-npx nx sync:check
+#### Read Path
+```
+Dashboard → API Gateway → Lambda → S3 → Dashboard
 ```
 
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
+## Technology Stack
 
-## Set up CI!
+### Frontend
+- **Framework**: React with TypeScript
+- **Build Tool**: Vite
+- **Routing**: Tanstack Router
+- **Styling**: CSS Modules
+- **HTTP Client**: Axios
+- **Visualization**: Chart.js
+- **State Management**: React Query for server state, React Context for local state
 
-### Step 1
+### Backend
+- **Runtime**: AWS Lambda (Node.js)
+- **API Framework**: Express with serverless-http
+- **Database**: Amazon DynamoDB
+- **Storage**: Amazon S3
+- **API Gateway**: Amazon API Gateway
+- **Infrastructure**: AWS CDK (TypeScript)
 
-To connect to Nx Cloud, run the following command:
+### Development Environment
+- **Monorepo Management**: NX
+- **Language**: TypeScript (strict mode)
+- **Package Manager**: npm
+- **Testing**: Jest
+- **Linting**: ESLint
+- **Formatting**: Prettier
 
-```sh
-npx nx connect
+## Project Structure
+
+```
+affirm-merchant-analytics/
+├── nx.json                    # NX configuration
+├── package.json               # Root package.json
+├── packages/                  # All packages in this directory
+│   ├── frontend/              # Combined UI application (order form + dashboard)
+│   ├── shared/                # Shared types and utilities
+│   ├── api/                   # Backend API
+│   └── cdk/                   # AWS CDK deployment code
+├── one-off/                   # One-off scripts and utilities
+│   └── order-history-simulation/ # Script to generate simulated order history
+└── memory-bank/               # Project documentation
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+## Setup and Installation
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Prerequisites
 
-### Step 2
+- Node.js (v16+)
+- npm (v7+)
+- AWS CLI configured with appropriate credentials
+- AWS CDK installed globally (`npm install -g aws-cdk`)
 
-Use the following command to configure a CI workflow for your workspace:
+### Installation
 
-```sh
-npx nx g ci-workflow
+1. Clone the repository
+   ```bash
+   git clone https://github.com/your-org/affirm-merchant-analytics.git
+   cd affirm-merchant-analytics
+   ```
+
+2. Install dependencies
+   ```bash
+   npm install
+   ```
+
+3. Build all packages
+   ```bash
+   npx nx run-many --target=build --all
+   ```
+
+## Usage
+
+### Local Development
+
+1. Start the frontend development server
+   ```bash
+   npx nx serve frontend
+   ```
+
+2. Start the API development server
+   ```bash
+   npx nx serve api
+   ```
+
+3. Open your browser and navigate to `http://localhost:4200`
+
+### Order Simulation
+
+1. Navigate to the Order Form page
+2. Fill in the form with the desired parameters:
+   - Merchant ID
+   - Product ID
+   - Amount
+   - Payment Plan
+   - Simulate Failure (optional)
+3. Submit the form to generate a new order
+
+### Analytics Dashboard
+
+1. Navigate to the Dashboard page
+2. Select a merchant from the dropdown
+3. Choose the time granularity (hourly or daily)
+4. Select the date range
+5. View the analytics data, including:
+   - Average Order Value (AOV)
+   - Transaction Volume
+   - Payment Plan Distribution
+   - Product Distribution
+   - Recent Orders
+
+## Deployment
+
+### AWS Deployment
+
+1. Synthesize the CDK stack
+   ```bash
+   npx nx synth cdk
+   ```
+
+2. Deploy the CDK stack
+   ```bash
+   npx nx deploy cdk
+   ```
+
+3. The deployment will output the URL of the deployed application
+
+## Development
+
+### Adding a New Feature
+
+1. Identify the package(s) that need to be modified
+2. Make the necessary changes
+3. Build and test the affected packages
+   ```bash
+   npx nx affected:build
+   npx nx affected:test
+   ```
+4. Deploy the changes
+   ```bash
+   npx nx deploy cdk
+   ```
+
+### Running Tests
+
+```bash
+# Run all tests
+npx nx run-many --target=test --all
+
+# Run tests for a specific package
+npx nx test frontend
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Current Status
 
-## Install Nx Console
+The project has been successfully completed with all core features implemented:
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+- ✅ Real-time Analytics
+- ✅ Multi-merchant Support
+- ✅ Failed Payment Insights
+- ✅ Interactive Dashboard
+- ✅ Order Simulation
+- ✅ AWS-native Backend
+- ✅ Infrastructure as Code
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Recent enhancements include:
+- ✅ Enhanced metrics to include counts for payment plans and products
+- ✅ Added Recent Orders section to the Dashboard
+- ✅ Created a script to generate simulated order history data
+- ✅ Implemented auto-refresh functionality for the Dashboard
 
-## Useful links
+## Future Enhancements
 
-Learn more:
+Potential future enhancements include:
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+1. **Conversion Rate Analysis**: Compare conversion rates with and without Affirm
+2. **Customer Segmentation**: Analyze which customer segments prefer which payment plans
+3. **Predictive Analytics**: Forecast future transaction volumes and AOV
+4. **Competitive Benchmarking**: Compare performance against industry averages
+5. **Recommendation Engine**: Suggest optimization opportunities based on data patterns
+6. **CI/CD Pipeline**: Set up GitHub Actions for automated testing and deployment
+7. **Enhanced Security**: Implement API authentication and WAF protection
+8. **Additional Metrics**: Implement more detailed analytics and insights
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Business Value
+
+The Merchant Analytics Dashboard provides significant business value to Affirm and its merchants:
+
+- **Data-Driven Decisions**: Empower merchants with real-time insights about their Affirm integration
+- **Increased Merchant Adoption**: Demonstrate clear ROI for using Affirm
+- **Reduced Merchant Churn**: Provide value beyond payment processing
+- **Competitive Advantage**: Differentiate from other BNPL providers with superior analytics
+- **Merchant Obsession**: Help merchants identify opportunities to improve conversion
