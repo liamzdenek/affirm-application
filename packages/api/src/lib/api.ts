@@ -42,112 +42,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// In-memory storage for orders (in a real app, this would be DynamoDB)
-const orders: Order[] = [];
-
-// In-memory storage for aggregated data (in a real app, this would be S3)
-const aggregatedData: AggregatedData[] = [];
-
-// Generate sample analytics data
-const generateSampleData = () => {
-  const merchants = SAMPLE_MERCHANTS.map(m => m.id);
-  const paymentPlans = SAMPLE_PAYMENT_PLANS.map(p => p.id);
-  
-  // Generate data for the last 7 days
-  const now = new Date();
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  
-  // Generate hourly data
-  for (let d = new Date(sevenDaysAgo); d <= now; d.setHours(d.getHours() + 1)) {
-    for (const merchantId of merchants) {
-      // Generate random metrics
-      const totalOrders = Math.floor(Math.random() * 100);
-      const failedOrders = Math.floor(Math.random() * 10);
-      const successfulOrders = totalOrders - failedOrders;
-      
-      // Generate random AOV by payment plan
-      const aovByPaymentPlan: Record<string, number> = {};
-      let totalAmount = 0;
-      
-      for (const plan of paymentPlans) {
-        const planOrders = Math.floor(Math.random() * successfulOrders);
-        const planAmount = planOrders * (Math.random() * 1000 + 100);
-        aovByPaymentPlan[plan] = planOrders > 0 ? planAmount / planOrders : 0;
-        totalAmount += planAmount;
-      }
-      
-      // Calculate overall AOV
-      const overallAOV = successfulOrders > 0 ? totalAmount / successfulOrders : 0;
-      
-      // Create hourly aggregated data
-      const hourlyData: AggregatedData = {
-        merchantId,
-        granularity: 'hourly',
-        timestamp: d.toISOString(),
-        metrics: {
-          volume: {
-            total: totalOrders,
-            successful: successfulOrders,
-            failed: failedOrders
-          },
-          aov: {
-            overall: overallAOV,
-            byPaymentPlan: aovByPaymentPlan
-          }
-        }
-      };
-      
-      aggregatedData.push(hourlyData);
-    }
-  }
-  
-  // Generate daily data
-  for (let d = new Date(sevenDaysAgo); d <= now; d.setDate(d.getDate() + 1)) {
-    for (const merchantId of merchants) {
-      // Generate random metrics
-      const totalOrders = Math.floor(Math.random() * 1000);
-      const failedOrders = Math.floor(Math.random() * 100);
-      const successfulOrders = totalOrders - failedOrders;
-      
-      // Generate random AOV by payment plan
-      const aovByPaymentPlan: Record<string, number> = {};
-      let totalAmount = 0;
-      
-      for (const plan of paymentPlans) {
-        const planOrders = Math.floor(Math.random() * successfulOrders);
-        const planAmount = planOrders * (Math.random() * 1000 + 100);
-        aovByPaymentPlan[plan] = planOrders > 0 ? planAmount / planOrders : 0;
-        totalAmount += planAmount;
-      }
-      
-      // Calculate overall AOV
-      const overallAOV = successfulOrders > 0 ? totalAmount / successfulOrders : 0;
-      
-      // Create daily aggregated data
-      const dailyData: AggregatedData = {
-        merchantId,
-        granularity: 'daily',
-        timestamp: d.toISOString(),
-        metrics: {
-          volume: {
-            total: totalOrders,
-            successful: successfulOrders,
-            failed: failedOrders
-          },
-          aov: {
-            overall: overallAOV,
-            byPaymentPlan: aovByPaymentPlan
-          }
-        }
-      };
-      
-      aggregatedData.push(dailyData);
-    }
-  }
-};
-
-// Generate sample data
-generateSampleData();
+// No in-memory storage - using DynamoDB and S3 for persistence
 
 // Routes
 
@@ -171,19 +66,24 @@ app.get('/payment-plans', (_req, res) => {
 // Submit a new order
 app.post('/orders', async (req, res) => {
   try {
+    console.log('Order request received:', req.body);
+    
     const orderRequest = req.body as OrderRequest;
     
     // Validate request
     if (!orderRequest.merchantId || !orderRequest.productId || !orderRequest.amount || !orderRequest.paymentPlan) {
+      console.log('Missing required fields in order request');
       res.status(400).json({ error: 'Missing required fields' });
       return;
     }
     
     // Generate order ID
     const orderId = uuidv4();
+    console.log('Generated order ID:', orderId);
     
     // Determine order status based on simulateFailure flag
     const status = orderRequest.simulateFailure ? 'failure' : 'success';
+    console.log('Order status:', status);
     
     // Create order
     const timestamp = new Date().toISOString();
@@ -197,6 +97,11 @@ app.post('/orders', async (req, res) => {
       productId: orderRequest.productId
     };
     
+    console.log('Storing order in DynamoDB:', {
+      TableName: ORDERS_TABLE,
+      Item: order
+    });
+    
     // Store order in DynamoDB
     await docClient.send(
       new PutCommand({
@@ -205,8 +110,8 @@ app.post('/orders', async (req, res) => {
       })
     );
     
-    // This will trigger a DynamoDB Stream event
-    // which will be processed by the aggregation Lambda function
+    console.log('Order stored successfully in DynamoDB');
+    console.log('This will trigger a DynamoDB Stream event which will be processed by the aggregation Lambda function');
     
     // Return response
     const response: OrderResponse = {
@@ -216,6 +121,7 @@ app.post('/orders', async (req, res) => {
       status
     };
     
+    console.log('Sending response:', response);
     res.status(201).json(response);
   } catch (error) {
     console.error('Error creating order:', error);
@@ -226,10 +132,17 @@ app.post('/orders', async (req, res) => {
 // Get recent orders for a merchant
 app.get('/merchants/:merchantId/orders', async (req, res) => {
   try {
+    console.log('Recent orders request received:', {
+      params: req.params,
+      query: req.query
+    });
+    
     const { merchantId } = req.params;
     const query = req.query as unknown as RecentOrdersQuery;
     const limit = query.limit || 10;
     const status = query.status;
+    
+    console.log('Recent orders parameters:', { merchantId, limit, status });
     
     // Query DynamoDB for orders by merchant ID
     const queryParams: any = {
@@ -251,13 +164,26 @@ app.get('/merchants/:merchantId/orders', async (req, res) => {
       };
     }
     
+    console.log('DynamoDB query parameters:', queryParams);
+    
     const result = await docClient.send(new QueryCommand(queryParams));
+    
+    console.log('DynamoDB query result:', {
+      Count: result.Count,
+      ScannedCount: result.ScannedCount,
+      Items: result.Items ? result.Items.length : 0
+    });
+    
+    if (result.Items && result.Items.length > 0) {
+      console.log('First item sample:', result.Items[0]);
+    }
     
     // Return response
     const response: RecentOrdersResponse = {
       orders: result.Items as Order[]
     };
     
+    console.log('Sending response with orders:', response.orders.length);
     res.status(200).json(response);
   } catch (error) {
     console.error('Error getting recent orders:', error);
@@ -268,46 +194,135 @@ app.get('/merchants/:merchantId/orders', async (req, res) => {
 // Get analytics for a merchant
 app.get('/merchants/:merchantId/analytics', async (req, res) => {
   try {
+    console.log('Analytics request received:', {
+      params: req.params,
+      query: req.query,
+      headers: req.headers,
+      url: req.url
+    });
+    
     const { merchantId } = req.params;
     const query = req.query as unknown as AnalyticsQuery;
     const granularity = query.granularity || 'hourly';
     const { startDate, endDate } = query;
     
+    console.log('Analytics request parameters:', { merchantId, granularity, startDate, endDate });
+    
     if (!startDate || !endDate) {
+      console.log('Missing required query parameters');
       res.status(400).json({ error: 'Missing required query parameters: startDate and endDate' });
       return;
     }
     
-    // For now, use the in-memory data since we're still setting up the S3 integration
-    // In a real implementation, we would fetch from S3 using a pattern like:
-    // const prefix = `${merchantId}/${granularity}/`;
+    // List objects in the S3 bucket with the prefix for this merchant and granularity
+    const prefix = `metrics/${merchantId}/${granularity}/`;
+    console.log('S3 prefix:', prefix);
+    console.log('S3 bucket:', AGGREGATED_DATA_BUCKET);
     
-    // Filter aggregated data by merchant ID, granularity, and date range
-    const filteredData = aggregatedData.filter(data =>
-      data.merchantId === merchantId &&
-      data.granularity === granularity &&
-      data.timestamp >= startDate &&
-      data.timestamp <= endDate
-    );
-    
-    // Sort by timestamp
-    const sortedData = filteredData.sort((a, b) =>
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
-    
-    // Transform to response format
-    const timePoints = sortedData.map(data => ({
-      timestamp: data.timestamp,
-      metrics: data.metrics
-    }));
-    
-    // Return response
-    const response: AnalyticsResponse = {
-      merchantId,
-      timePoints
-    };
-    
-    res.status(200).json(response);
+    try {
+      console.log('Sending ListObjectsV2Command to S3');
+      const listResult = await s3Client.send(
+        new ListObjectsV2Command({
+          Bucket: AGGREGATED_DATA_BUCKET,
+          Prefix: prefix
+        })
+      );
+      
+      console.log('ListObjectsV2Command result:', JSON.stringify(listResult, null, 2));
+      
+      if (!listResult.Contents || listResult.Contents.length === 0) {
+        // If no data is found, return empty response
+        console.log('No objects found in S3 with prefix:', prefix);
+        res.status(200).json({
+          merchantId,
+          timePoints: []
+        });
+        return;
+      }
+      
+      console.log('Found objects in S3:', listResult.Contents.length);
+      console.log('Object keys:', listResult.Contents.map(obj => obj.Key));
+      
+      // Filter objects by date range
+      const filteredKeys = listResult.Contents
+        .filter(obj => {
+          const key = obj.Key || '';
+          const timestamp = key.split('/').pop()?.replace('.json', '') || '';
+          
+          // Parse the dates for proper comparison
+          const timestampDate = timestamp.split('T')[0]; // Extract just the date part
+          console.log('Comparing dates:', {
+            timestamp,
+            timestampDate,
+            startDate,
+            endDate,
+            isAfterStart: timestampDate >= startDate,
+            isBeforeEnd: timestampDate <= endDate
+          });
+          
+          const isInRange = timestampDate >= startDate && timestampDate <= endDate;
+          console.log('Filtering key:', { key, timestamp, timestampDate, startDate, endDate, isInRange });
+          return isInRange;
+        })
+        .map(obj => obj.Key || '');
+      
+      console.log('Filtered keys:', filteredKeys);
+      
+      // Get the content of each filtered object
+      const dataPromises = filteredKeys.map(async (key) => {
+        try {
+          console.log('Getting object from S3:', key);
+          const getResult = await s3Client.send(
+            new GetObjectCommand({
+              Bucket: AGGREGATED_DATA_BUCKET,
+              Key: key
+            })
+          );
+          
+          // Convert stream to string
+          const bodyContents = await getResult.Body?.transformToString();
+          if (!bodyContents) {
+            console.log('No body contents for key:', key);
+            return null;
+          }
+          
+          console.log('Object body for key:', key, bodyContents.substring(0, 100) + '...');
+          return JSON.parse(bodyContents) as AggregatedData;
+        } catch (error) {
+          console.error(`Error getting object ${key}:`, error);
+          return null;
+        }
+      });
+      
+      // Wait for all promises to resolve
+      const dataArray = (await Promise.all(dataPromises)).filter(Boolean) as AggregatedData[];
+      console.log('Data array length:', dataArray.length);
+      
+      // Sort by timestamp
+      const sortedData = dataArray.sort((a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
+      console.log('Sorted data length:', sortedData.length);
+      
+      // Transform to response format
+      const timePoints = sortedData.map(data => ({
+        timestamp: data.timestamp,
+        metrics: data.metrics
+      }));
+      console.log('Time points length:', timePoints.length);
+      
+      // Return response
+      const response: AnalyticsResponse = {
+        merchantId,
+        timePoints
+      };
+      
+      console.log('Sending response with time points:', timePoints.length);
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Error listing objects in S3:', error);
+      res.status(500).json({ error: 'Error retrieving analytics data from S3', details: String(error) });
+    }
   } catch (error) {
     console.error('Error getting analytics:', error);
     res.status(500).json({ error: 'Internal server error' });

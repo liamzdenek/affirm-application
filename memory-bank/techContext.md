@@ -216,6 +216,67 @@ interface AggregatedData {
    - CloudWatch Metrics for API Gateway and Lambda
    - S3 Access Logs for frontend
 
+## Implementation Details
+
+### API Implementation
+
+1. **Express with serverless-http**:
+   - Single Lambda function for all API endpoints
+   - Express middleware for CORS, JSON parsing, etc.
+   - Serverless-http for Lambda integration
+
+2. **DynamoDB Integration**:
+   - AWS SDK v3 for DynamoDB
+   - DynamoDBDocumentClient for easier interaction
+   - PutCommand for storing orders
+   - QueryCommand for retrieving orders
+
+3. **S3 Integration**:
+   - AWS SDK v3 for S3
+   - ListObjectsV2Command for listing objects
+   - GetObjectCommand for retrieving objects
+   - PutObjectCommand for storing objects
+
+4. **Aggregation Logic**:
+   - DynamoDB Streams for real-time aggregation
+   - Lambda function triggered by DynamoDB Streams
+   - S3 for storing aggregated data
+   - Partitioning by merchant ID, granularity, and timestamp
+
+### Frontend Implementation
+
+1. **Configuration System**:
+   - Environment variables for API base URL
+   - Different values for development and production
+   - Vite configuration for environment variables
+
+2. **API Integration**:
+   - Axios for HTTP requests
+   - React Query for data fetching and caching
+   - Error handling and loading states
+
+3. **Visualization**:
+   - Chart.js for data visualization
+   - Line charts for time series data
+   - Responsive design for different screen sizes
+
+### Debugging and Logging
+
+1. **Lambda Logging**:
+   - Extensive console.log statements
+   - Structured logging with JSON.stringify
+   - Environment variable logging
+
+2. **API Logging**:
+   - Request and response logging
+   - Error logging with stack traces
+   - Performance metrics logging
+
+3. **S3 Operation Logging**:
+   - Object key logging
+   - Operation result logging
+   - Error details logging
+
 ## Performance Considerations
 
 1. **DynamoDB Capacity**: Use on-demand capacity for simplicity in this demo.

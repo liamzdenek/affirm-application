@@ -106,3 +106,33 @@ The project has evolved through several iterations:
 16. Fixed TypeScript configuration for API and CDK packages
 17. Resolved Lambda bundling issues for deployment
 18. Successfully deployed the application to AWS using CDK with the lz-demos profile
+19. Fixed API implementation to use DynamoDB and S3 for data storage
+20. Added extensive logging to API and aggregation Lambda functions
+21. Fixed date comparison logic in analytics endpoint to properly filter S3 objects
+22. Updated frontend configuration to use environment variables for API base URL
+23. Simplified frontend deployment in CDK stack to avoid bundling issues
+
+## Recent Debugging and Fixes
+
+1. **Lambda Dependency Issue**: Fixed the "Cannot find package 'express' imported from /var/task/src/lib/api.js" error by ensuring all dependencies are properly bundled.
+
+2. **API Implementation**: Updated the API implementation to use DynamoDB and S3 for data storage instead of in-memory storage:
+   - Added AWS SDK DynamoDB client and document client
+   - Updated the order submission endpoint to save orders to DynamoDB
+   - Updated the recent orders endpoint to query DynamoDB
+   - Updated the analytics endpoint to query S3 for aggregated data
+
+3. **Frontend Configuration**: Created a configuration system for the frontend to use different API base URLs for development and production:
+   - Added a config.ts file that uses environment variables
+   - Updated the OrderForm and Dashboard components to use this configuration
+   - Updated the Vite configuration to set the API base URL based on the build mode
+
+4. **Date Comparison Logic**: Fixed the date comparison logic in the analytics endpoint to properly filter S3 objects:
+   - Updated the filtering logic to extract just the date part from ISO timestamps
+   - Added detailed logging to help debug the issue
+
+5. **Logging**: Added extensive logging to the API and aggregation Lambda functions to help debug issues:
+   - Added request and response logging
+   - Added detailed logging for S3 operations
+   - Added detailed logging for DynamoDB operations
+   - Added detailed logging for aggregation calculations
