@@ -51,7 +51,8 @@ export class FrontendStack extends Stack {
     });
 
     // Deploy the frontend to S3
-    // Note: In a real project, you would build the frontend first
+    // Note: In a real app, we would build the frontend with the API endpoint
+    // For now, we'll just deploy the existing dist folder
     new BucketDeployment(this, 'DeployFrontend', {
       sources: [Source.asset(path.join(__dirname, '../../../../../../packages/frontend/dist'))],
       destinationBucket: this.frontendBucket,

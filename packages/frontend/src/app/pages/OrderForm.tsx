@@ -10,9 +10,7 @@ import {
   SAMPLE_PAYMENT_PLANS
 } from '@affirm-merchant-analytics/shared';
 import styles from './OrderForm.module.css';
-
-// API base URL - in a real app, this would be configured based on environment
-const API_BASE_URL = 'http://localhost:3001';
+import { API_BASE_URL } from '../../config';
 
 export function OrderForm() {
   // State for form data

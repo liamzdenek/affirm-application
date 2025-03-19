@@ -2,7 +2,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig(() => ({
+// Define API base URL for production
+const prodApiBaseUrl = 'https://jj99cpj221.execute-api.us-west-2.amazonaws.com/prod';
+
+export default defineConfig(({ mode }) => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/packages/frontend',
   server:{
@@ -26,4 +29,10 @@ export default defineConfig(() => ({
       transformMixedEsModules: true,
     },
   },
+  // Define environment variables based on mode
+  define: {
+    'import.meta.env.VITE_API_BASE_URL': mode === 'production'
+      ? JSON.stringify(prodApiBaseUrl)
+      : JSON.stringify('http://localhost:3001')
+  }
 }));

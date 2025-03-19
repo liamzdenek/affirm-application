@@ -18,6 +18,7 @@ import {
   ChartOptions
 } from 'chart.js';
 import styles from './Dashboard.module.css';
+import { API_BASE_URL } from '../../config';
 
 // Register Chart.js components
 ChartJS.register(
@@ -29,9 +30,6 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-
-// API base URL - in a real app, this would be configured based on environment
-const API_BASE_URL = 'http://localhost:3001';
 
 // Date formatting helper
 const formatDate = (dateString: string) => {
