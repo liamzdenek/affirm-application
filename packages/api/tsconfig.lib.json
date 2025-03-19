@@ -7,6 +7,9 @@
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "emitDeclarationOnly": false,
     "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@affirm-merchant-analytics/shared": ["../shared/src/index.js"]
+    },
     "types": [
       "node"
     ]
@@ -14,7 +17,9 @@
   "include": [
     "src/**/*.ts"
   ],
-  "references": [],
+  "references": [
+    { "path": "../shared/tsconfig.lib.json" }
+  ],
   "exclude": [
     "jest.config.ts",
     "src/**/*.spec.ts",

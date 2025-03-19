@@ -2,7 +2,7 @@
 
 ## Current Status
 
-We are at the initial implementation phase of the Merchant Analytics Dashboard project. The architecture has been defined and documented, the NX workspace has been initialized, and we are now setting up the package structure.
+We have made significant progress on the Merchant Analytics Dashboard project. The architecture has been defined and documented, the NX workspace has been initialized, and we have implemented both the frontend and API components. We are now working on the AWS CDK infrastructure for deployment.
 
 ## Recent Decisions
 
@@ -18,15 +18,17 @@ We are at the initial implementation phase of the Merchant Analytics Dashboard p
 
 6. **NX Command Updates**: Updated the NX commands to use the current plugin names (@nx/react, @nx/node, @nx/js) instead of the outdated ones (@nrwl/react).
 
+7. **Frontend Implementation**: Implemented the frontend with React, Vite, and Tanstack Router, with separate pages for the order form and dashboard.
+
+8. **API Implementation**: Implemented the API with Express and serverless-http, with endpoints for orders and analytics.
+
 ## Current Focus Areas
 
-1. **Package Initialization**: Installing the necessary NX plugins and generating the package structure.
+1. **AWS CDK Infrastructure**: Implementing the AWS CDK infrastructure for deployment, including DynamoDB, Lambda, API Gateway, S3, and CloudFront.
 
-2. **Interface Definition**: Finalizing the API contracts and data models between system components.
+2. **TypeScript Errors**: Addressing TypeScript errors related to module resolution and type definitions.
 
-3. **AWS Infrastructure**: Defining the CDK stacks for DynamoDB, Lambda, API Gateway, and S3.
-
-4. **Frontend Structure**: Planning the React component hierarchy and state management approach.
+3. **Testing**: Planning for unit tests, integration tests, and end-to-end testing.
 
 ## Key Considerations
 
@@ -40,44 +42,42 @@ We are at the initial implementation phase of the Merchant Analytics Dashboard p
 
 ## Next Steps
 
-1. **Install NX Plugins**: Install the React and Node.js plugins for NX.
+1. **Install AWS CDK Dependencies**:
    ```
-   npm install -D @nx/react @nx/node
-   ```
-
-2. **Generate Packages**: Create the frontend, shared, api, and cdk packages using NX generators.
-   ```
-   npx nx g @nx/react:app frontend --directory=packages/frontend --style=css --bundler=vite --js=false --strict
-   npx nx g @nx/js:lib shared --directory=packages/shared --buildable --js=false --strict
-   npx nx g @nx/node:lib api --directory=packages/api --buildable --js=false --strict
-   npx nx g @nx/js:lib cdk --directory=packages/cdk --buildable --js=false --strict
+   cd packages/cdk && npm install --save aws-cdk-lib constructs
    ```
 
-3. **Implement Data Storage**: Set up the DynamoDB table and stream configuration.
+2. **Implement CDK Stacks**:
+   - Data Storage Stack (DynamoDB)
+   - S3 Stack
+   - Lambda Stack
+   - API Gateway Stack
+   - Frontend Stack
 
-4. **Develop Aggregation Logic**: Implement the Lambda function for processing DynamoDB stream events and calculating metrics.
+3. **Test the Application Locally**:
+   ```
+   nx serve frontend
+   nx serve api
+   ```
 
-5. **Create API Endpoints**: Build the Express application with routes for order submission and analytics retrieval.
-
-6. **Develop Frontend**: Implement the React application with order form and dashboard views.
-
-7. **Deploy Infrastructure**: Use CDK to deploy all components to AWS.
-
-8. **Test End-to-End**: Verify the complete data flow from order submission to analytics visualization.
+4. **Deploy the Application Using CDK**:
+   ```
+   nx run cdk:deploy
+   ```
 
 ## Open Questions
 
-1. **Sample Data**: What sample merchants and products should we include for demonstration purposes?
+1. **AWS Account Configuration**: How should we configure the AWS account for deployment?
 
-2. **Payment Plans**: What Affirm payment plans should we simulate in the order form?
+2. **API Gateway Throttling**: What throttling limits should we set for the API Gateway?
 
-3. **Visualization Style**: What chart types would best represent the AOV and volume metrics?
+3. **S3 Bucket Lifecycle**: Should we implement lifecycle policies for the S3 bucket storing aggregated data?
 
-4. **Time Range**: What default time range should the dashboard display?
+4. **CloudFront Distribution**: What cache settings should we use for the CloudFront distribution?
 
 ## Recent Changes
 
-The architecture has evolved through several iterations:
+The project has evolved through several iterations:
 
 1. Initial concept focused on a merchant integration health monitor
 2. Shifted to a merchant analytics dashboard based on user preference
@@ -87,3 +87,6 @@ The architecture has evolved through several iterations:
 6. Removed customerSegment attribute as it wasn't adding value
 7. Enforced merchant-specific granularity for all analytics queries
 8. Updated NX commands to use current plugin names (@nx/react, @nx/node, @nx/js)
+9. Implemented frontend with React, Vite, and Tanstack Router
+10. Implemented API with Express and serverless-http
+11. Started implementing AWS CDK infrastructure
